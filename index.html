@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fdf6ee">
+<title>大觀課程溫度計｜SEL × 108課綱</title>
+<!-- 引入 Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<!-- 引入 Marked.js 用於完美渲染 AI 產生的 Markdown 教案 -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- 引入 html2pdf.js 用於一鍵前端打包教案與照片成 PDF 檔案 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#fdf6ee;--bg2:#f7ead8;--bg3:#eedcbf;--card:#fffdf8;
+  --t1:#2c1a08;--t2:#7a5430;--t3:#c09a6e;
+  --bd:rgba(180,120,50,0.14);--bd2:rgba(160,100,40,0.24);
+  --r:12px;--rl:18px;
+  --or:#c06010;--orl:#fff0dc;--ord:#7a3a04;
+  --gr:#4e7a1a;--grl:#edf5d0;--grd:#2a4408;
+  --re:#a03030;--rel:#fdeaea;--red:#5c1010;
+  --sh:0 2px 6px rgba(180,120,40,0.10),0 6px 24px rgba(180,120,40,0.10);
+  --sh-sm:0 1px 4px rgba(180,120,40,0.10);
+  --c0:#d43030;--c1:#e06818;--c2:#d4a000;--c3:#80aa18;--c4:#28902a;--c5:#0a7230;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang TC','Hiragino Sans TC','Noto Sans TC',sans-serif;
+  background:var(--bg);color:var(--t1);line-height:1.65;min-height:100vh}
+.wrap{max-width:840px;margin:0 auto;padding:0 1rem 6rem}
+@media(min-width:600px){.wrap{padding:0 1.5rem 6rem}}
+@media(min-width:768px){.wrap{padding:0 2rem 6rem}}
+
+/* ════ HEADER ════ */
+.site-header{
+  background:linear-gradient(135deg,#7a3a04 0%,#c06010 45%,#e8900a 100%);
+  padding:1.5rem 1.5rem 1.25rem;margin-bottom:1.5rem;
+  box-shadow:0 4px 20px rgba(120,60,0,0.25);
+  position:relative;overflow:hidden
+}
+.site-header::before{
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,0.06);
+}
+.site-header::after{
+  content:'';position:absolute;bottom:-40px;left:60px;
+  width:100px;height:100px;border-radius:50%;
+  background:rgba(255,255,255,0.04);
+}
+.header-inner{max-width:840px;margin:0 auto;display:flex;align-items:center;gap:16px;position:relative;z-index:1}
+.header-thermo{flex-shrink:0}
+.thermo-svg{width:52px;height:90px;display:block}
+.header-text{flex:1}
+.header-title{font-size:clamp(20px,5vw,28px);font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.15;margin-bottom:4px;text-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.header-sub{font-size:12px;color:rgba(255,240,210,0.9);line-height:1.5}
+.header-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.hbadge{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600;
+  background:rgba(255,255,255,0.18);color:#fff;border:.5px solid rgba(255,255,255,0.3);
+  white-space:nowrap}
+
+/* API 金鑰設定區 */
+.api-banner{
+  background:linear-gradient(135deg,#fff8ee,#ffefd8);
+  border:.5px solid rgba(192,96,16,.22);border-radius:var(--rl);
+  padding:1rem 1.25rem;margin-bottom:14px;box-shadow:var(--sh-sm)
+}
+.api-banner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:10px}
+.api-banner-info{display:flex;align-items:center;gap:10px}
+.api-banner-ico{font-size:24px;flex-shrink:0}
+.api-banner-title{font-size:14px;font-weight:700;color:var(--ord)}
+.api-banner-sub{font-size:11px;color:var(--t2);margin-top:1px}
+.api-guide-btn{font-size:11px;font-weight:700;padding:6px 12px;border:1px solid var(--or);border-radius:20px;
+  background:transparent;color:var(--or);cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap}
+.api-guide-btn:hover{background:var(--orl)}
+
+.api-row{display:flex;gap:8px}
+.api-in{flex:1;font-size:13px;padding:10px 14px;border:.5px solid var(--bd2);border-radius:var(--r);
+  background:#fffdf8;color:var(--t1);font-family:inherit;min-height:42px;letter-spacing:.04em}
+.api-in:focus{outline:none;border-color:var(--or);background:#fff}
+.api-vis{font-size:12px;padding:10px 14px;border:.5px solid var(--bd2);border-radius:var(--r);
+  background:var(--card);color:var(--t2);cursor:pointer;font-family:inherit;white-space:nowrap}
+.api-save{font-size:13px;font-weight:700;padding:10px 18px;border:none;border-radius:var(--r);
+  background:linear-gradient(135deg,#e8820a,#c06010);color:#fff;cursor:pointer;font-family:inherit;
+  white-space:nowrap;box-shadow:0 2px 8px rgba(192,96,16,.3)}
+.api-save:hover{background:linear-gradient(135deg,#d07010,#a05010)}
+.api-saved{font-size:11px;margin-top:8px;padding:6px 12px;border-radius:8px;display:none;
+  background:#edf5d0;color:#2a4408;border:.5px solid rgba(78,122,26,.3)}
+.api-saved.show{display:block}
+
+/* ════ GUIDAL MODAL (引導視窗樣式) ════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(44,26,8,0.5);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal-card{background:var(--card);width:90%;max-width:520px;max-height:85vh;overflow-y:auto;
+  border-radius:var(--rl);box-shadow:var(--sh);border:1px solid var(--bd);padding:1.5rem;
+  transform:scale(0.95);transition:transform .3s ease}
+.modal-overlay.open .modal-card{transform:scale(1)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:15px}
+.modal-title{font-size:16px;font-weight:800;color:var(--ord)}
+.modal-close{background:none;border:none;font-size:24px;color:var(--t3);cursor:pointer;line-height:1}
+.modal-close:hover{color:var(--re)}
+.step-list{display:flex;flex-direction:column;gap:12px}
+.step-item{display:flex;gap:12px;align-items:flex-start}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--or);color:#fff;font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-txt{font-size:13px;line-height:1.6;color:var(--t1)}
+.step-txt strong{color:var(--ord)}
+.step-link{color:var(--or);font-weight:700;text-decoration:underline}
+
+/* CARDS */
+.card{background:var(--card);border:.5px solid var(--bd);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--sh)}
+.card+.card,.card+.panels{margin-top:12px}
+.ct{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+
+/* NAV TABS */
+.page-nav{display:flex;gap:4px;background:var(--bg2);border-radius:14px;padding:4px;margin-bottom:16px;border:.5px solid var(--bd)}
+.pn-btn{flex:1;padding:9px 4px;font-size:11px;font-weight:700;border:none;border-radius:10px;
+  background:transparent;color:var(--t2);cursor:pointer;font-family:inherit;transition:all .2s;
+  min-height:44px;touch-action:manipulation;line-height:1.3;text-align:center}
+.pn-btn.on{background:linear-gradient(135deg,#fff8ee,var(--card));color:var(--or);
+  box-shadow:0 1px 6px rgba(192,96,16,.18);border:.5px solid rgba(192,96,16,.2)}
+.page{display:none}
+.page.on{display:block}
+
+/* SUBJECT PILLS */
+.subj-grid{display:flex;flex-wrap:wrap;gap:6px}
+.sj{font-size:12px;padding:7px 12px;border:.5px solid var(--bd2);border-radius:20px;
+  background:var(--card);color:var(--t2);cursor:pointer;transition:all .15s;
+  font-family:inherit;font-weight:500;min-height:36px;touch-action:manipulation}
+.sj:hover{background:var(--bg2);color:var(--t1)}
+.sj.on{background:linear-gradient(135deg,#e8820a,#c06010);border-color:#c06010;color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(192,96,16,.3)}
+
+/* INDICATOR BROWSER */
+.ind-item-row{padding:9px 11px;background:var(--bg2);border-radius:9px;margin-bottom:5px;
+  font-size:12px;line-height:1.55;color:var(--t1);cursor:pointer;transition:all .15s;
+  border:.5px solid transparent}
+.ind-item-row:hover{background:#fde8c0;border-color:rgba(192,96,16,.25)}
+.ind-item-row.sel{background:#fde0a8;border-color:#c06010;color:#7a3a04}
+.ind-code{font-weight:700;margin-right:6px;font-size:11px;color:var(--t3)}
+.ind-item-row.sel .ind-code{color:#c06010}
+.ind-group-title{font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ind-group-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* TAB BAR (inner) */
+.tab-bar{display:flex;gap:4px;background:var(--bg2);border-radius:10px;padding:3px;margin-bottom:12px;border:.5px solid var(--bd)}
+.tab-btn{flex:1;padding:8px 4px;font-size:12px;font-weight:600;border:none;border-radius:7px;
+  background:transparent;color:var(--t2);cursor:pointer;font-family:inherit;transition:all .2s;min-height:36px;touch-action:manipulation}
+.tab-btn.on{background:var(--card);color:var(--or);box-shadow:0 1px 3px rgba(192,96,16,.12)}
+.tab-pane{display:none}
+.tab-pane.on{display:block}
+
+/* TEXTAREA */
+textarea{width:100%;min-height:110px;font-size:13px;padding:11px 13px;border:.5px solid var(--bd);
+  border-radius:var(--r);background:var(--bg2);color:var(--t1);resize:vertical;
+  font-family:inherit;line-height:1.7;transition:border-color .15s;-webkit-appearance:none}
+textarea:focus{outline:none;border-color:var(--or);background:var(--card)}
+
+/* UPLOAD ZONES & BUTTONS */
+.upload-mode-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px}
+@media(max-width:420px){.upload-mode-row{grid-template-columns:1fr 1fr}}
+.umode-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;
+  border:.5px solid var(--bd2);border-radius:var(--r);background:var(--card);color:var(--t2);
+  cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;min-height:68px;touch-action:manipulation;transition:all .18s}
+.umode-btn .ico{font-size:22px;line-height:1}
+.umode-btn.sel-a{border-color:var(--or);background:var(--orl);color:var(--ord)}
+.umode-btn.sel-b{border-color:var(--gr);background:var(--grl);color:var(--grd)}
+.umode-btn.sel-c{border-color:#6b5fd4;background:#f0ebff;color:#3c3080}
+
+.drop-zone{border:1.5px dashed var(--bd2);border-radius:var(--r);background:var(--bg2);
+  padding:1.5rem 1rem;text-align:center;transition:all .2s;
+  position:relative;overflow:hidden;min-height:110px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--or);background:var(--orl)}
+
+/* 🚀 雙軌制相機與檔案按鈕 */
+.drop-actions{display:flex;gap:10px;margin-top:4px;z-index:2;position:relative;flex-direction:column;align-items:center}
+.act-btn{font-size:12px;font-weight:700;padding:8px 16px;border-radius:20px;border:none;
+  cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .15s;box-shadow:var(--sh-sm)}
+.act-btn.cam{background:linear-gradient(135deg,#e8820a,#c06010);color:#fff}
+.act-btn.cam:hover{background:linear-gradient(135deg,#d07010,#a05010)}
+.act-btn.alb{background:var(--card);color:var(--t2);border:1px solid var(--bd2)}
+.act-btn.alb:hover{background:var(--bg2)}
+
+.drop-icon{font-size:28px;pointer-events:none}
+.drop-lbl{font-size:13px;font-weight:600;color:var(--t1);pointer-events:none}
+.drop-sub{font-size:11px;color:var(--t3);pointer-events:none}
+
+/* FILE LIST */
+.file-list{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+.file-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg2);
+  border-radius:8px;font-size:12px;border:.5px solid var(--bd)}
+.file-item-ico{font-size:16px;flex-shrink:0}
+.file-item-name{flex:1;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item-size{font-size:10px;color:var(--t3);flex-shrink:0}
+.file-item-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0 2px;line-height:1}
+.file-item-del:hover{color:var(--re)}
+
+/* IMG PREVIEW */
+.prev-wrap{position:relative;margin-top:10px;border-radius:var(--r);overflow:hidden;border:.5px solid var(--bd)}
+.prev-wrap img{width:100%;max-height:220px;object-fit:contain;display:block;background:var(--bg3)}
+.prev-over{position:absolute;top:8px;right:8px;display:flex;gap:6px}
+.prev-btn{background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:20px;font-size:11px;padding:5px 10px;cursor:pointer;font-family:inherit}
+
+/* OCR STATUS */
+.ocr-st{margin-top:8px;padding:9px 12px;border-radius:var(--r);font-size:12px;display:none;align-items:center;gap:8px;line-height:1.4}
+.ocr-st.load{display:flex;background:var(--orl);color:var(--ord)}
+.ocr-st.done{display:flex;background:var(--grl);color:var(--grd)}
+.ocr-st.err{display:flex;background:var(--rel);color:var(--red)}
+.ocr-ext{margin-top:6px;font-size:12px;color:var(--t2);background:var(--bg2);border-radius:var(--r);
+  padding:10px;line-height:1.6;max-height:100px;overflow-y:auto;border:.5px solid var(--bd);display:none}
+
+/* BUTTONS */
+.go-btn{width:100%;margin-top:10px;padding:13px;font-size:15px;font-weight:700;
+  background:linear-gradient(135deg,#e8820a,#c06010);color:#fff;border:none;border-radius:var(--r);
+  cursor:pointer;font-family:inherit;transition:all .18s;min-height:48px;touch-action:manipulation;
+  box-shadow:0 2px 10px rgba(192,96,16,.3)}
+.go-btn:hover:not(:disabled){background:linear-gradient(135deg,#d07010,#a05010);transform:translateY(-1px);box-shadow:0 6px 18px rgba(192,96,16,.4)}
+.go-btn:active:not(:disabled){transform:none}
+.go-btn:disabled{background:var(--bg3);color:var(--t3);cursor:not-allowed;box-shadow:none}
+.gen-btn{width:100%;padding:13px;font-size:15px;font-weight:700;
+  background:linear-gradient(135deg,#5e9020,#3e6a10);color:#fff;
+  border:none;border-radius:var(--r);cursor:pointer;font-family:inherit;transition:all .18s;min-height:48px;
+  box-shadow:0 2px 10px rgba(78,120,20,.3)}
+.gen-btn:hover:not(:disabled){background:linear-gradient(135deg,#4e8018,#2e5008);transform:translateY(-1px);box-shadow:0 6px 18px rgba(78,120,20,.4)}
+.gen-btn:disabled{background:var(--bg3);color:var(--t3);cursor:not-allowed;box-shadow:none}
+
+/* LOADING */
+.loading{display:none;text-align:center;padding:2.5rem 1rem;background:var(--card);
+  border:.5px solid var(--bd);border-radius:var(--rl);margin-top:12px}
+.spin{display:inline-block;width:20px;height:20px;border:2.5px solid var(--bg3);
+  border-top-color:#c06010;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-sub{font-size:12px;color:var(--t3);margin-top:5px}
+
+/* TOAST NOTIFICATION */
+#toast-container {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10000;
+  display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+}
+.toast {
+  background: rgba(44,26,8,0.9); color: #fff; padding: 12px 24px; border-radius: 30px;
+  font-size: 13px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  animation: fadeInOut 3.5s forwards; font-weight: 600;
+}
+.toast.error { background: rgba(212,48,48,0.95); }
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(20px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(20px); }
+}
+
+/* RESULTS */
+.results{display:none;margin-top:12px}
+.results.on{display:block}
+
+/* PALETTE CARD */
+.pal-card{background:var(--card);border:.5px solid var(--bd);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--sh);margin-bottom:12px}
+.pal-hd{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.sc-big{line-height:1}
+.sc-num{font-size:clamp(44px,10vw,58px);font-weight:800;letter-spacing:-.04em;transition:color .6s}
+.sc-unit{font-size:13px;color:var(--t2)}
+.sc-subj{font-size:12px;color:var(--t3);margin-top:3px}
+.sc-src{font-size:11px;color:var(--t3);font-style:italic}
+.feas-pill{font-size:13px;font-weight:700;padding:7px 16px;border-radius:20px;transition:all .4s;white-space:nowrap}
+.pal-bar-wrap{margin-bottom:18px}
+.pal-bar-top{display:flex;justify-content:space-between;margin-bottom:5px}
+.pal-bar-top span{font-size:10px;color:var(--t3)}
+.pal-bar{position:relative;height:22px;border-radius:11px;overflow:visible;
+  background:linear-gradient(to right,var(--c0),var(--c1),var(--c2),var(--c3),var(--c4),var(--c5))}
+.pal-mkr{position:absolute;top:-5px;width:6px;height:32px;background:var(--t1);border-radius:3px;
+  transform:translateX(-50%);box-shadow:0 0 0 2.5px var(--card),0 2px 8px rgba(0,0,0,.2);
+  transition:left .8s cubic-bezier(.34,1.3,.64,1)}
+.pal-tick{display:flex;justify-content:space-between;margin-top:5px;padding:0 2px}
+.pal-tick span{font-size:10px;color:var(--t3)}
+.dim-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+@media(max-width:440px){.dim-grid{grid-template-columns:repeat(3,1fr)}}
+.dim-blk{border-radius:var(--r);padding:9px 7px;text-align:center;border:.5px solid transparent;transition:transform .15s}
+.dim-blk:hover{transform:translateY(-2px)}
+.dim-blk-ico{font-size:17px;margin-bottom:4px}
+.dim-blk-lbl{font-size:10px;font-weight:600;line-height:1.3;margin-bottom:5px}
+.dim-blk-pct{font-size:19px;font-weight:800;line-height:1}
+.dim-blk-bar{height:3px;border-radius:2px;margin-top:5px;background:rgba(0,0,0,.1)}
+.dim-blk-fill{height:3px;border-radius:2px;transition:width .8s}
+.kw-sec{margin-top:14px}
+.kw-lbl{font-size:11px;color:var(--t3);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.kw-list{display:flex;flex-wrap:wrap;gap:5px}
+.kw{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:var(--orl);color:var(--ord)}
+.tb-insight{background:#f0ebff;border:.5px solid #6b5fd4;border-radius:var(--r);
+  padding:11px 13px;margin-top:12px;font-size:12px;color:#3c3080;line-height:1.65;display:none}
+.tb-insight strong{font-size:13px;display:block;margin-bottom:5px}
+
+/* RADAR */
+.radar-card{background:var(--card);border:.5px solid var(--bd);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--sh);margin-bottom:12px}
+.radar-wrap{position:relative;width:100%;height:clamp(250px,55vw,340px)}
+.radar-leg{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;justify-content:center}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2)}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* INDICATOR RESULT LIST */
+.ind-res-card{background:var(--card);border:.5px solid var(--bd);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--sh);margin-bottom:12px}
+.ind-res-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:.5px solid var(--bd)}
+.ind-res-item:last-child{border-bottom:none}
+.ir-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.ir-meta{min-width:68px;flex-shrink:0}
+.ir-dim{font-size:11px;font-weight:700;line-height:1.3}
+.ir-match{font-size:10px;opacity:.7;margin-top:1px}
+.ir-txt{font-size:12px;color:var(--t2);line-height:1.5;flex:1}
+
+/* LESSON PLAN PAGE */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+@media(max-width:520px){.panels{grid-template-columns:1fr}}
+.lp-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:480px){.lp-row{grid-template-columns:1fr}}
+.lp-field label{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}
+.lp-field select,.lp-field input[type=text]{width:100%;font-size:13px;padding:9px 12px;border:.5px solid var(--bd);
+  border-radius:var(--r);background:var(--bg2);color:var(--t1);font-family:inherit;-webkit-appearance:none;min-height:40px}
+.lp-field select:focus,.lp-field input:focus{outline:none;border-color:var(--or);background:var(--card)}
+.lp-sel-inds{background:var(--bg2);border:.5px solid var(--bd);border-radius:var(--r);padding:10px;max-height:160px;overflow-y:auto;margin-bottom:10px}
+.lp-sel-ind{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:.5px solid var(--bd);font-size:12px}
+.lp-sel-ind:last-child{border-bottom:none}
+.lp-sel-ind-x{background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0;line-height:1;flex-shrink:0}
+.lp-sel-ind-x:hover{color:var(--re)}
+.lp-output{background:var(--card);border:.5px solid var(--bd);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--sh);margin-top:12px;display:none}
+.lp-output.on{display:block}
+.lp-content{font-size:14px;line-height:1.85;color:var(--t1);word-break:break-word}
+/* 針對 Markdown 產生的內容優化排版 */
+.lp-content h1, .lp-content h2, .lp-content h3 { margin-top: 1.2rem; margin-bottom: 0.6rem; color: var(--ord); border-bottom: 1px solid var(--bd); padding-bottom: 4px; }
+.lp-content p { margin-bottom: 0.8rem; }
+.lp-content ul, .lp-content ol { margin-left: 1.8rem; margin-bottom: 1rem; }
+.lp-content li { margin-bottom: 0.4rem; }
+.lp-content strong { color: var(--t1); font-weight: 700; background: linear-gradient(120deg, var(--orl) 0%, var(--orl) 100%); background-repeat: no-repeat; background-size: 100% 40%; background-position: 0 88%; }
+
+.lp-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.lp-act-btn{font-size:12px;padding:8px 16px;border:.5px solid var(--bd2);border-radius:20px;
+  background:var(--card);color:var(--t2);cursor:pointer;font-family:inherit;transition:all .15s}
+.lp-act-btn:hover{background:var(--bg2);color:var(--t1)}
+.lp-act-btn.primary{background:linear-gradient(135deg,#e8820a,#c06010);color:#fff;border-color:#c06010;box-shadow:0 2px 8px rgba(192,96,16,.25)}
+.lp-act-btn.primary:hover{background:linear-gradient(135deg,#d07010,#a05010)}
+
+/* SEL ACCORDION */
+.acc-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;
+  background:none;border:none;font-family:inherit;font-size:13px;font-weight:600;
+  color:var(--t1);cursor:pointer;padding:0}
+.acc-toggle .arr{font-size:14px;transition:transform .25s;color:var(--t3)}
+.acc-toggle.open .arr{transform:rotate(180deg)}
+.acc-body{overflow:hidden;max-height:0;transition:max-height .35s ease}
+.acc-body.open{max-height:700px}
+.dim-row-acc{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:.5px solid var(--bd)}
+.dim-row-acc:last-child{border-bottom:none}
+.dim-ico-acc{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+
+/* COURSE TYPE BADGES */
+.course-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;
+  padding:2px 8px;border-radius:20px;margin-left:6px;vertical-align:middle}
+.course-bud{background:#e8f4ff;color:#0a5498;border:.5px solid rgba(10,84,152,.2)}
+.course-sch{background:#fff0d8;color:#7a4a00;border:.5px solid rgba(122,74,0,.2)}
+.course-flex{background:#f0ebff;color:#4a2098;border:.5px solid rgba(74,32,152,.2)}
+
+footer{text-align:center;margin-top:3rem;font-size:11px;color:var(--t3);padding-bottom:1rem}
+@supports(padding-bottom:env(safe-area-inset-bottom)){
+  .wrap{padding-bottom:calc(5rem + env(safe-area-inset-bottom))}}
+</style>
+</head>
+<body>
+
+<!-- ══ 溫慢大標題 ══ -->
+<div class="site-header">
+  <div class="header-inner">
+    <div class="header-thermo">
+      <svg class="thermo-svg" viewBox="0 0 52 90" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="4" width="12" height="56" rx="6" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"/>
+        <rect x="23" y="20" width="6" height="40" rx="3" fill="#FFD580"/>
+        <line x1="32" y1="16" x2="36" y2="16" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
+        <line x1="32" y1="26" x2="36" y2="26" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
+        <line x1="32" y1="36" x2="36" y2="36" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
+        <line x1="32" y1="46" x2="36" y2="46" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
+        <line x1="32" y1="56" x2="36" y2="56" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
+        <circle cx="26" cy="72" r="12" fill="#FFD580" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"/>
+        <circle cx="26" cy="72" r="8" fill="#FFA020"/>
+        <circle cx="26" cy="8" r="5" fill="rgba(255,255,255,0.3)" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"/>
+        <text x="19" y="76" font-size="8" fill="white" opacity="0.7">♡</text>
+      </svg>
+    </div>
+    <div class="header-text">
+      <div class="header-title">大觀課程溫度計</div>
+      <div class="header-sub">SEL 社會情緒學習 × 108課綱素養指標評估系統</div>
+      <div class="header-badges">
+        <span class="hbadge">📋 課綱指標庫</span>
+        <span class="hbadge">📊 SEL評估</span>
+        <span class="hbadge">📷 拍照辨識</span>
+        <span class="hbadge">✏️ AI教案生成</span>
+        <span class="hbadge">📁 檔案上傳</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- API 金鑰設定 -->
+<div class="api-banner" id="apiBanner">
+  <div class="api-banner-top">
+    <div class="api-banner-info">
+      <div class="api-banner-ico">🔑</div>
+      <div>
+        <div class="api-banner-title">設定 Google Gemini API 金鑰</div>
+        <div class="api-banner-sub">點擊右方教學可免費取得 Key，即刻開啟完整 AI 功能</div>
+      </div>
+    </div>
+    <button class="api-guide-btn" onclick="openGuideModal()">💡 申請金鑰教學</button>
+  </div>
+  <div class="api-row">
+    <input type="password" class="api-in" id="apiKey" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">
+    <button class="api-vis" onclick="toggleApiVis()">顯示</button>
+    <button class="api-save" onclick="saveKey()">儲存</button>
+  </div>
+  <div class="api-saved" id="apiSaved">✅ 金鑰已儲存，AI 功能已啟用！</div>
+</div>
+
+<!-- 互動引導視窗 (Modal) -->
+<div class="modal-overlay" id="guideModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">🔑 兩分鐘免費取得 Gemini API Key</div>
+      <button class="modal-close" onclick="closeGuideModal()">&times;</button>
+    </div>
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-txt">
+          點擊連結前往官方平台：<a href="https://aistudio.google.com/" target="_blank" class="step-link">Google AI Studio</a>。
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-txt">
+          使用您的<strong>學校 Google 帳號</strong>（如 @mail.ntpc.edu.tw 或個人 Gmail 帳號）直接登入。
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-txt">
+          在首頁左上角，找到並點擊 <strong>「Get API key」</strong> 按鈕。
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-txt">
+          點擊 <strong>「Create API key」</strong>，系統會自動產生一組以 <code>AIzaSy</code> 開頭的長字串。
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-txt">
+          <strong>複製該組金鑰</strong>，回到本系統貼入上方的輸入欄，並點擊<strong>「儲存」</strong>，即可全校免費使用！
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 主導覽 -->
+<div class="page-nav">
+  <button class="pn-btn on" onclick="switchPage('browse')">📋 課綱瀏覽<br><span style="font-size:10px;font-weight:400">內建指標庫</span></button>
+  <button class="pn-btn" onclick="switchPage('analyze')">🌡 SEL 評估<br><span style="font-size:10px;font-weight:400">文字/拍照/上傳</span></button>
+  <button class="pn-btn" onclick="switchPage('lesson')">✏️ 教案生成<br><span style="font-size:10px;font-weight:400">AI 自動設計</span></button>
+</div>
+
+<!-- ════════ PAGE 1: 課綱瀏覽 ════════ -->
+<div class="page on" id="pg-browse">
+  <div class="card" style="margin-bottom:12px">
+    <button class="acc-toggle" onclick="toggleAcc(this)">
+      <span>🌱 SEL 五大核心面向說明（CASEL）</span><span class="arr">▾</span>
+    </button>
+    <div class="acc-body">
+      <div style="padding-top:10px">
+        <div class="dim-row-acc"><div class="dim-ico-acc" style="background:#fef0d8">🔍</div><div><strong style="font-size:13px">自我覺察</strong><br><span style="font-size:12px;color:var(--t2)">認識自身情緒、想法與價值觀，建立積極自我認同與效能感</span></div></div>
+        <div class="dim-row-acc"><div class="dim-ico-acc" style="background:#edf5d0">🎯</div><div><strong style="font-size:13px">自我管理</strong><br><span style="font-size:12px;color:var(--t2)">管理情緒與行為、設定目標、壓力調適、自我激勵</span></div></div>
+        <div class="dim-row-acc"><div class="dim-ico-acc" style="background:#fff4d0">🌍</div><div><strong style="font-size:13px">社會覺察</strong><br><span style="font-size:12px;color:var(--t2)">同理不同背景的人，展現關懷與尊重，認識多元文化</span></div></div>
+        <div class="dim-row-acc"><div class="dim-ico-acc" style="background:#fbeaea">🤝</div><div><strong style="font-size:13px">人際技巧</strong><br><span style="font-size:12px;color:var(--t2)">有效溝通、積極傾聽、合作解決問題、衝突管理</span></div></div>
+        <div class="dim-row-acc"><div class="dim-ico-acc" style="background:#edf5d0">⚖️</div><div><strong style="font-size:13px">負責任的決策</strong><br><span style="font-size:12px;color:var(--t2)">批判性思考、評估後果，考量道德與社會影響</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="panels">
+    <div class="card">
+      <div class="ct">選擇科目</div>
+      <div class="subj-grid" id="browseSubjGrid"></div>
+    </div>
+    <div class="card">
+      <div class="ct">篩選 SEL 面向</div>
+      <div class="subj-grid" id="dimFilterGrid">
+        <button class="sj on" data-dim="all">全部</button>
+        <button class="sj" data-dim="awareness">自我覺察</button>
+        <button class="sj" data-dim="management">自我管理</button>
+        <button class="sj" data-dim="social">社會覺察</button>
+        <button class="sj" data-dim="relation">人際技巧</button>
+        <button class="sj" data-dim="decision">負責任決策</button>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="browseCard">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div class="ct" style="margin-bottom:0" id="browseTitle">請選擇科目</div>
+      <!-- ✅ 修正點 1: 在此處新增了分析契合度按鈕 -->
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span id="selCountLabel" style="font-size:11px;font-weight:600;color:var(--or);display:none"></span>
+        <button id="analyzeSelBtn" onclick="analyzeSelectedInds()" style="display:none;font-size:11px;padding:5px 12px;border:.5px solid var(--or);border-radius:20px;background:var(--orl);color:var(--ord);cursor:pointer;font-family:inherit;font-weight:600">🌡 快速分析契合度</button>
+        <button id="addToLpBtn" onclick="addSelToLesson()" style="display:none;font-size:11px;padding:5px 12px;border:.5px solid var(--gr);border-radius:20px;background:var(--grl);color:var(--grd);cursor:pointer;font-family:inherit;font-weight:600">加入教案設計 →</button>
+      </div>
+    </div>
+    <div id="indBrowser"><div style="font-size:13px;color:var(--t3);padding:1.5rem 0;text-align:center">👆 請先從左上方選擇科目</div></div>
+  </div>
+</div>
+
+<!-- ════════ PAGE 2: SEL 評估 ════════ -->
+<div class="page" id="pg-analyze">
+  <div class="panels">
+    <div class="card">
+      <div class="ct">科目</div>
+      <div class="subj-grid" id="analyzeSubjGrid"></div>
+    </div>
+    <div class="card">
+      <div class="tab-bar">
+        <button class="tab-btn on" id="atTabText" onclick="switchATab('text')">✏️ 文字</button>
+        <button class="tab-btn" id="atTabPhoto" onclick="switchATab('photo')">📷 拍照/相簿</button>
+        <button class="tab-btn" id="atTabFile" onclick="switchATab('file')">📁 上傳檔案</button>
+      </div>
+
+      <!-- 文字 -->
+      <div class="tab-pane on" id="atPaneText">
+        <textarea id="txtInput" placeholder="貼上課綱指標、計畫內容，或自行輸入文字…"></textarea>
+      </div>
+
+      <!-- 拍照與多張上傳 -->
+      <div class="tab-pane" id="atPanePhoto">
+        <div class="upload-mode-row">
+          <button class="umode-btn sel-a" id="modeInd" onclick="setPhotoMode('indicator')"><span class="ico">📋</span><span>課綱指標</span></button>
+          <button class="umode-btn" id="modeBook" onclick="setPhotoMode('textbook')"><span class="ico">📖</span><span>教材課本</span></button>
+          <button class="umode-btn" id="modePlan" onclick="setPhotoMode('plan')"><span class="ico">📄</span><span>計畫文件</span></button>
+        </div>
+        
+        <div class="drop-zone" id="dropZone"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleDrop(event)">
+          
+          <div class="drop-icon" id="dropIcon">📋</div>
+          <div class="drop-lbl" id="dropLbl">拍照辨識課綱指標</div>
+          
+          <!-- ✅ 相機設定：前後鏡頭快速切換 -->
+          <div style="margin-top: 5px; display: flex; align-items: center; gap: 6px; z-index: 5; position: relative;">
+            <span style="font-size:11px; font-weight:600; color:var(--t2)">📸 行動載具拍照鏡頭：</span>
+            <select id="cameraFacing" onchange="updateCameraCapture()" style="font-size:11px; padding:3px 8px; border-radius:12px; border:.5px solid var(--bd2); background:var(--card); font-family:inherit; color: var(--or); font-weight: bold;">
+              <option value="environment">後置主鏡頭 (拍教材)</option>
+              <option value="user">前置鏡頭 (記錄/自拍)</option>
+            </select>
+          </div>
+          
+          <div class="drop-sub" style="margin-top: 10px;">請選擇下方的操作方式：</div>
+          
+          <div class="drop-actions">
+            <button class="act-btn cam" onclick="document.getElementById('cameraInput').click()">📸 立即拍照</button>
+            <button class="act-btn alb" onclick="document.getElementById('fileInput').click()">🖼 選擇相簿照片</button>
+          </div>
+
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleFiles(this.files)">
+          <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+        </div>
+        
+        <div id="prevArea"></div>
+        <div class="ocr-st" id="ocrSt"><span class="spin" style="flex-shrink:0"></span><span id="ocrMsg">辨識中...</span></div>
+        <div class="ocr-ext" id="ocrExt"></div>
+      </div>
+
+      <!-- 上傳檔案 -->
+      <div class="tab-pane" id="atPaneFile">
+        <div style="margin-bottom:10px">
+          <div class="ct" style="margin-bottom:6px">課程類型</div>
+          <div class="subj-grid" id="courseTypeGrid">
+            <button class="sj on" data-ct="部定課程">部定課程<span class="course-badge course-bud">必修</span></button>
+            <button class="sj" data-ct="校訂課程">校訂課程<span class="course-badge course-sch">校本</span></button>
+            <button class="sj" data-ct="彈性課程">彈性課程<span class="course-badge course-flex">彈性</span></button>
+          </div>
+        </div>
+        <div class="drop-zone" id="docDropZone"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleDocDrop(event)">
+          <input type="file" id="docFileInput" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.ppt,.pptx" multiple onchange="handleDocFiles(this.files)">
+          <div class="drop-icon">📁</div>
+          <div class="drop-lbl">點擊上傳課程計畫或相關文件</div>
+          <div class="drop-sub">支援 PDF、圖片、TXT 等格式</div>
+        </div>
+        <div class="file-list" id="docFileList"></div>
+        <div class="ocr-st" id="docOcrSt"><span class="spin" style="flex-shrink:0"></span><span id="docOcrMsg">分析中...</span></div>
+        <div class="ocr-ext" id="docOcrExt"></div>
+      </div>
+
+      <button class="go-btn" id="goBtn" onclick="analyze()">🌡 分析 SEL 契合程度</button>
+    </div>
+  </div>
+
+  <div class="loading" id="loading"><div><span class="spin"></span><span id="ldMsg">分析中...</span></div><div class="loading-sub" id="ldSub"></div></div>
+
+  <div class="results" id="results">
+    <div class="pal-card">
+      <div class="pal-hd">
+        <div class="sc-big">
+          <div><span class="sc-num" id="scNum">—</span><span class="sc-unit"> %</span></div>
+          <div class="sc-subj" id="scSubj"></div>
+          <div class="sc-src" id="scSrc"></div>
+        </div>
+        <div class="feas-pill" id="feasPill">評估中</div>
+      </div>
+      <div class="pal-bar-wrap">
+        <div class="pal-bar-top"><span>不適合</span><span>需補充</span><span>部分適合</span><span>高度適合</span></div>
+        <div class="pal-bar"><div class="pal-mkr" id="palMkr" style="left:0%"></div></div>
+        <div class="pal-tick"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+      </div>
+      <div class="dim-grid" id="dimGrid"></div>
+      <div class="kw-sec"><div class="kw-lbl">偵測到的 SEL 關鍵詞</div><div class="kw-list" id="kwList"></div></div>
+      <div class="tb-insight" id="tbInsight"></div>
+    </div>
+    <div class="radar-card">
+      <div class="ct">大觀課程溫度計 ── SEL 五大面向雷達圖</div>
+      <div class="radar-wrap"><canvas id="radarChart"></canvas></div>
+      <div class="radar-leg" id="radarLeg"></div>
+    </div>
+    <div class="ind-res-card">
+      <div class="ct" style="margin-bottom:8px">指標逐條對應分析</div>
+      <div id="indResList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PAGE 3: 教案生成 ════════ -->
+<div class="page" id="pg-lesson">
+  <div class="card">
+    <div class="ct">教案設計參數</div>
+    <div class="lp-row">
+      <div class="lp-field"><label>科目</label><select id="lpSubj"></select></div>
+      <div class="lp-field">
+        <label>年級</label>
+        <select id="lpGrade">
+          <option>國七（7年級）</option>
+          <option>國八（8年級）</option>
+          <option>國九（9年級）</option>
+        </select>
+      </div>
+    </div>
+    <div class="lp-row">
+      <!-- 修正點: 保留原有並同時需要用到的 lpDim 下拉選單元素 -->
+      <div class="lp-field">
+        <label>SEL 融入面向</label>
+        <select id="lpDim">
+          <option value="all">全部五大面向</option>
+          <option value="awareness">自我覺察</option>
+          <option value="management">自我管理</option>
+          <option value="social">社會覺察</option>
+          <option value="relation">人際技巧</option>
+          <option value="decision">負責任的決策</option>
+        </select>
+      </div>
+      <!-- ✅ 修正點 2: 設計多種不同側重的提示詞範本下拉選單 -->
+      <div class="lp-field">
+        <label>SEL 融入教案著重導向（自選提示範本）</label>
+        <select id="lpSelStrategy" style="border-color: var(--or); font-weight: bold; color: var(--ord);">
+          <option value="balanced">⚖️ 均衡融合 (CASEL 五大面向均衡扣合)</option>
+          <option value="awareness">🔍 自我覺察導向 (著重情緒辨識、自我接納、優勢探索)</option>
+          <option value="management">🎯 自我管理導向 (著重壓力調適、挫折忍受、自我激勵)</option>
+          <option value="social">🌍 社會覺察導向 (著重多元包容、跨文化理解、同理與感恩)</option>
+          <option value="relation">🤝 人際技巧導向 (著重溝通表達、團隊合作、衝突解決)</option>
+          <option value="decision">⚖️ 負責任決策導向 (著重思辨判斷、後果評估、系統性思考)</option>
+        </select>
+      </div>
+    </div>
+    <div class="lp-row">
+      <div class="lp-field">
+        <label>課堂節數</label>
+        <select id="lpPeriod">
+          <option>1 節（45分鐘）</option>
+          <option>2 節（90分鐘）</option>
+          <option>3 節（135分鐘）</option>
+        </select>
+      </div>
+      <div class="lp-field">
+        <label>課程類型</label>
+        <select id="lpCourseType">
+          <option>部定課程（必修）</option>
+          <option>校訂課程（校本特色）</option>
+          <option>彈性學習課程</option>
+        </select>
+      </div>
+    </div>
+    <div class="lp-row">
+      <div class="lp-field" style="grid-column: span 2;">
+        <label>教案格式</label>
+        <select id="lpFormat">
+          <option value="full">完整教學活動設計</option>
+          <option value="simple">簡案（重點摘要）</option>
+          <option value="unit">單元計畫</option>
+        </select>
+      </div>
+    </div>
+    <div class="lp-field" style="margin-bottom:10px">
+      <label>教學主題（可留空，AI 自動建議）</label>
+      <input type="text" id="lpTopic" placeholder="例如：情緒管理與壓力調適、環境永續與責任…">
+    </div>
+    <div class="ct" style="margin-top:4px">已選課綱指標</div>
+    <div class="lp-sel-inds" id="lpSelInds">
+      <div style="font-size:12px;color:var(--t3);text-align:center;padding:8px">尚無選取指標，請至「課綱瀏覽」選取，或在下方補充</div>
+    </div>
+    <div class="lp-field" style="margin-bottom:12px">
+      <label>補充說明（選填）</label>
+      <textarea id="lpExtra" style="min-height:70px" placeholder="補充指標、學生特性、學校特色、教學現場說明…"></textarea>
+    </div>
+    <button class="gen-btn" id="genBtn" onclick="generateLesson()">🤖 AI 生成教案</button>
+  </div>
+
+  <div class="lp-output" id="lpOutput">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="ct" style="margin-bottom:0">📄 教案輸出</div>
+      <div style="font-size:11px;color:var(--t3)" id="lpMeta"></div>
+    </div>
+    <div class="lp-content" id="lpContent"></div>
+    <div class="lp-actions">
+      <button class="lp-act-btn primary" onclick="copyLesson()">📋 複製全文</button>
+      <button class="lp-act-btn" onclick="downloadLesson()">⬇ 下載 .txt</button>
+      <!-- ✅ 修正點 3: 新增一鍵打包教案與隨堂照片為 PDF 檔案之按鈕 -->
+      <button class="lp-act-btn" onclick="exportToPDF()" style="background: linear-gradient(135deg, #a03030, #5c1010); color: white; border: none; font-weight: bold;">📝 打包下載 PDF (含照片)</button>
+      <button class="lp-act-btn" onclick="regenLesson()">🔄 重新生成</button>
+    </div>
+  </div>
+
+  <div class="loading" id="lpLoading" style="margin-top:12px"><div><span class="spin"></span><span id="lpLdMsg">AI 生成教案中...</span></div><div class="loading-sub" id="lpLdSub"></div></div>
+</div>
+
+<!-- 吐司通知容器 -->
+<div id="toast-container"></div>
+
+<!-- ✅ 修正點 4: 網頁下方新增著作權宣告陳柏宇&大觀國中團隊小字樣 -->
+<footer>
+  大觀課程溫度計 · SEL × 108課綱 · CASEL 五大面向 · 驅動 by Google Gemini API<br>
+  <span style="font-size: 10px; margin-top: 5px; display: inline-block; opacity: 0.85; letter-spacing: 0.05em;">
+    Copyright &copy; 2026 大觀課程溫度計研究開發社群 - 陳柏宇 & 大觀國中團隊 版權所有
+  </span>
+</footer>
+</div>
+
+<script>
+/* ════ 管理者金鑰設定 ════ */
+const ADMIN_KEY = ''; // ← 若學校有統一的 Gemini API Key (AIza...)，可以填在這裡
+
+/* ════ 108課綱指標資料庫 ════ */
+const DB={
+  '綜合活動':{color:'#c06010',groups:[
+    {name:'自我探索與生涯發展',sel:['awareness','management'],inds:[
+      {code:'綜2-III-1',text:'覺察並認同自己的特質與優勢，探索自我與生涯發展的關聯'},
+      {code:'綜2-III-2',text:'理解自己的情緒，並以合宜的方式管理及表達情緒'},
+      {code:'綜2-III-3',text:'規劃個人生涯，設定合理目標並評估執行成效'},
+      {code:'綜2-III-4',text:'反思學習歷程，辨識自我優勢並調整學習策略'},
+    ]},
+    {name:'人際互動與溝通',sel:['relation','social'],inds:[
+      {code:'綜3-III-1',text:'參與各種人際情境，運用有效的溝通與合作技巧解決衝突'},
+      {code:'綜3-III-2',text:'尊重不同文化與背景的人，培養多元包容的態度'},
+      {code:'綜3-III-3',text:'在團體中學習分工合作，展現積極傾聽與溝通表達能力'},
+      {code:'綜3-III-4',text:'覺察家庭與社會資源，並在需要時主動尋求協助'},
+    ]},
+    {name:'社會關懷與環境行動',sel:['social','decision'],inds:[
+      {code:'綜4-III-1',text:'探討社區環境問題，提出可行的改善方案並付諸行動'},
+      {code:'綜4-III-2',text:'了解全球議題與在地行動的關聯，展現負責任的公民態度'},
+      {code:'綜4-III-3',text:'分析生活環境的變化，展現同理心並提出解決問題的方法'},
+    ]},
+  ]},
+  '健康與體育':{color:'#3e7a1a',groups:[
+    {name:'健康管理與自我照顧',sel:['awareness','management'],inds:[
+      {code:'健體-J-A1',text:'具備良好身心健康管理能力，理解情緒覺察與壓力調適的重要'},
+      {code:'健體-J-A2',text:'評估個人健康行為，設定健康目標並透過自我管理付諸實踐'},
+      {code:'健體-J-A3',text:'了解青春期身心變化，發展自我接納與自我照顧的能力'},
+    ]},
+    {name:'人際關係與性別教育',sel:['relation','social'],inds:[
+      {code:'健體-J-C1',text:'了解人際關係的本質，學習尊重界線、建立健康安全的社交互動'},
+      {code:'健體-J-C2',text:'認識性別多樣性，展現對不同性別的尊重與包容'},
+      {code:'健體-J-C3',text:'在合作學習與競賽中發展團隊合作精神與溝通協調能力'},
+    ]},
+    {name:'健康促進與社會責任',sel:['social','decision'],inds:[
+      {code:'健體-J-B1',text:'分析影響健康的環境因素，思辨媒體健康資訊的真偽與影響'},
+      {code:'健體-J-B2',text:'了解藥物、菸酒的危害，培養拒絕的判斷力與負責任的決策'},
+      {code:'健體-J-B3',text:'關懷社區健康議題，展現對公共衛生的社會責任感'},
+    ]},
+  ]},
+  '社會':{color:'#a06010',groups:[
+    {name:'公民認同與自我定位',sel:['awareness','decision'],inds:[
+      {code:'社-J-A1',text:'理解個人在社會中的角色與責任，培養公民認同與自我定位'},
+      {code:'社-J-A2',text:'反思個人的價值觀與行為，了解自我認同的建立與影響'},
+      {code:'公民-J-A1',text:'認識自己的道德判斷標準，培養是非辨別能力'},
+    ]},
+    {name:'多元文化與社會覺察',sel:['social','relation'],inds:[
+      {code:'社-J-C1',text:'了解臺灣多元文化，尊重不同族群，展現多元包容的公民素養'},
+      {code:'歷史-J-C1',text:'認識不同時代與文化背景，培養對多元文化的尊重與包容'},
+      {code:'地理-J-C1',text:'了解不同地區的文化與生活方式，培養跨文化理解素養'},
+    ]},
+    {name:'民主素養與負責任決策',sel:['decision','social'],inds:[
+      {code:'社-J-C2',text:'探討社會議題，評估不同立場，做出符合公共利益的判斷'},
+      {code:'公民-J-C2',text:'在面對道德兩難時，評估各種選擇的後果，做出負責任的決定'},
+      {code:'地理-J-C2',text:'探討環境永續議題，培養對自然環境的關懷與負責任行動意識'},
+    ]},
+  ]},
+  '國語文':{color:'#6b50c0',groups:[
+    {name:'文學閱讀與情感理解',sel:['awareness','social'],inds:[
+      {code:'國-J-A1',text:'透過文學閱讀理解人物情感與動機，培養同理心與多元觀點'},
+      {code:'國-J-A2',text:'探索自我情感與經驗，透過寫作建立個人認同與自信'},
+      {code:'國-J-B1',text:'閱讀不同類型文本，理解作者觀點，培養批判性思考能力'},
+    ]},
+    {name:'溝通表達與人際互動',sel:['relation','awareness'],inds:[
+      {code:'國-J-C1',text:'運用語文技巧清楚表達想法，學習傾聽與理解他人意見'},
+      {code:'國-J-C2',text:'在不同溝通情境中選用合適語言，建立良好人際互動關係'},
+      {code:'國-J-C3',text:'透過口語與書面溝通協作，展現團隊合作與問題解決能力'},
+    ]},
+  ]},
+  '英語文':{color:'#1a7a5a',groups:[
+    {name:'自我表達與文化探索',sel:['awareness','social'],inds:[
+      {code:'英-J-A1',text:'以英語分享個人感受、興趣與想法，增進自我認識與表達能力'},
+      {code:'英-J-C1',text:'透過英語接觸不同文化，理解並尊重文化差異，培養跨文化溝通素養'},
+    ]},
+    {name:'溝通互動與合作學習',sel:['relation','management'],inds:[
+      {code:'英-J-C2',text:'在英語溝通情境中學習傾聽、理解與尊重他人，建立友善互動'},
+      {code:'英-J-B1',text:'運用英語進行合作學習任務，培養團隊合作與問題解決能力'},
+    ]},
+  ]},
+  '數學':{color:'#1a5aaa',groups:[
+    {name:'邏輯推理與批判思考',sel:['decision','management'],inds:[
+      {code:'數-J-A2',text:'運用邏輯推理解決生活問題，培養分析、評估與理性判斷能力'},
+      {code:'數-J-A3',text:'面對複雜問題時，嘗試不同解題策略，展現堅持與問題解決能力'},
+    ]},
+    {name:'合作學習與溝通表達',sel:['relation','awareness'],inds:[
+      {code:'數-J-C1',text:'在合作學習中解決數學問題，學習清楚表達解題思路並傾聽他人'},
+      {code:'數-J-C2',text:'理解數學與生活的連結，培養理性決策與負責任行動的基礎'},
+    ]},
+  ]},
+  '自然科學':{color:'#1a8a6a',groups:[
+    {name:'科學探究與自我管理',sel:['management','decision'],inds:[
+      {code:'自然-J-A1',text:'擬定探究計畫並付諸實踐，展現問題解決能力與自我管理'},
+      {code:'自然-J-A2',text:'面對實驗結果的不確定性，學習調整假設並堅持探究精神'},
+    ]},
+    {name:'合作與社會責任',sel:['relation','social'],inds:[
+      {code:'自然-J-C1',text:'了解科學與環境的關係，培養對永續環境的責任感與行動力'},
+      {code:'自然-J-C2',text:'在科學探究中尊重不同觀點，學習客觀評估與批判思考'},
+      {code:'自然-J-B1',text:'透過科學合作學習，培養溝通協調與共同解決問題的能力'},
+    ]},
+  ]},
+  '科技':{color:'#3a6a1a',groups:[
+    {name:'系統思考與決策',sel:['decision','management'],inds:[
+      {code:'科技-J-A1',text:'分析科技問題，評估解決方案的可行性，培養系統思考能力'},
+      {code:'科技-J-A2',text:'在科技設計過程中反思與調整，展現自我管理與問題解決能力'},
+    ]},
+    {name:'科技責任與社會影響',sel:['social','decision'],inds:[
+      {code:'科技-J-C1',text:'了解科技對社會與環境的影響，培養負責任使用科技的意識'},
+      {code:'科技-J-C2',text:'在科技專題中進行團隊合作，學習溝通協調與共同解決問題'},
+    ]},
+  ]},
+  '藝術':{color:'#8a4a9a',groups:[
+    {name:'自我表達與情感探索',sel:['awareness','management'],inds:[
+      {code:'藝-J-A1',text:'透過藝術創作探索自我情感，建立個人美感認同與自我表達能力'},
+      {code:'藝-J-A2',text:'反思藝術創作歷程，了解自己的情感特質與表達方式'},
+    ]},
+    {name:'多元文化與合作創作',sel:['social','relation'],inds:[
+      {code:'藝-J-C1',text:'欣賞不同文化藝術形式，理解多元文化的價值，培養包容與尊重'},
+      {code:'藝-J-C2',text:'在藝術合作創作中學習溝通、分工與尊重彼此的創意想法'},
+    ]},
+  ]},
+  '公民與道德':{color:'#1a6a7a',groups:[
+    {name:'道德判斷與自我認識',sel:['awareness','decision'],inds:[
+      {code:'公民-J-A1',text:'認識自己的道德判斷標準，培養是非辨別能力，建立負責任的行為態度'},
+      {code:'公民-J-A2',text:'了解公民權利與義務，反思個人在民主社會中的角色與責任'},
+    ]},
+    {name:'人權關懷與社會正義',sel:['social','relation'],inds:[
+      {code:'公民-J-C1',text:'尊重他人的權利與尊嚴，理解公平正義的社會價值，展現弱勢關懷'},
+      {code:'公民-J-C2',text:'在面對道德兩難時，評估各種選擇的後果，做出負責任的決定'},
+      {code:'公民-J-B1',text:'培養同理心，從不同立場理解問題，建立包容多元的民主素養'},
+    ]},
+  ]},
+  '歷史':{color:'#8a5a10',groups:[
+    {name:'歷史理解與自我定位',sel:['awareness','social'],inds:[
+      {code:'歷史-J-A1',text:'透過歷史人物的生命故事，理解個人在時代中的選擇與責任'},
+      {code:'歷史-J-A2',text:'分析歷史事件的因果關係，培養對道德議題的批判性思考能力'},
+    ]},
+    {name:'多元文化與公民責任',sel:['social','decision'],inds:[
+      {code:'歷史-J-C1',text:'認識不同時代與文化背景，培養對多元文化的尊重與包容態度'},
+      {code:'歷史-J-C2',text:'從歷史中汲取教訓，培養負責任的公民意識與行動力'},
+    ]},
+  ]},
+  '地理':{color:'#2a7a3a',groups:[
+    {name:'文化理解與環境覺察',sel:['social','awareness'],inds:[
+      {code:'地理-J-A1',text:'觀察生活環境的地理特徵，培養對環境變遷的覺察與關懷'},
+      {code:'地理-J-C1',text:'了解不同地區的文化與生活方式，培養跨文化理解與尊重差異素養'},
+    ]},
+    {name:'永續發展與負責任行動',sel:['decision','social'],inds:[
+      {code:'地理-J-C2',text:'探討環境永續議題，培養對自然環境的關懷與負責任的行動意識'},
+      {code:'地理-J-B1',text:'分析地理問題，評估不同解決方案的影響，培養理性決策能力'},
+    ]},
+  ]},
+};
+const SUBJECTS=Object.keys(DB);
+
+const DIMS=[
+  {key:'awareness', label:'自我覺察', icon:'🔍',color:'#1a6abf'},
+  {key:'management',label:'自我管理', icon:'🎯',color:'#4e9a18'},
+  {key:'social',    label:'社會覺察', icon:'🌍',color:'#c07a10'},
+  {key:'relation',  label:'人際技巧', icon:'🤝',color:'#6b5fd4'},
+  {key:'decision',  label:'負責任決策',icon:'⚖️',color:'#0f8060'},
+];
+const KW={
+  awareness:['自我覺察','情緒覺察','自我認識','自我概念','自我認同','自我了解','情緒識別','自我探索','自我省思','情緒表達','覺察自己','了解自己','認識自己','身心狀態','自我肯定','自尊','自信','自我效能','感受','情緒管理','情緒健康','心理健康','情緒素養','覺察','內在','自我接納'],
+  management:['自我管理','目標設定','壓力管理','自我調節','自我激勵','情緒調節','延遲滿足','堅持','毅力','專注','計畫','時間管理','自律','自我控制','因應壓力','挫折忍受','自我提升','生涯規劃','學習策略','自主學習','調適','自我照顧'],
+  social:['同理心','社會覺察','文化多元','尊重差異','換位思考','理解他人','關懷他人','社會關懷','公民意識','社會正義','多元文化','包容','接納','感恩','社會規範','環境關懷','生態','社會參與','弱勢關懷','人文關懷','文化理解','尊重','關懷','族群','永續'],
+  relation:['人際關係','溝通','合作','傾聽','表達','協作','衝突解決','團隊合作','互助','分工','人際技巧','溝通技巧','社交技巧','建立關係','同儕','友誼','互動','領導','協調','談判','說服','支持他人','幫助他人','共同合作','群體','交流','討論'],
+  decision:['決策','判斷','批判思考','問題解決','倫理','道德','負責','責任','後果','評估','分析','推理','是非','道德判斷','公民責任','行動力','實踐','反思','系統思考','理性','邏輯','辨別','抉擇','審慎','思辨']
+};
+
+/* ════ STATE ════ */
+let browseSel=SUBJECTS[0], dimFilter='all', selectedInds=[];
+let analyzeSel=SUBJECTS[0], currentTab='text', photoMode='indicator';
+let courseType='部定課程';
+let uploadedImgs=[], extractedTxt='', ocrRunning=false;
+let docFiles=[], docText='', docOcrRunning=false;
+let radarChart=null, lastLpContent='';
+
+/* ════ API KEY (Google Gemini Version) ════ */
+function getKey(){
+  const stored=localStorage.getItem('dkwt_key');
+  if(stored) return stored;
+  if(ADMIN_KEY) return ADMIN_KEY;
+  return document.getElementById('apiKey').value.trim()||null;
+}
+function saveKey(){
+  const v=document.getElementById('apiKey').value.trim();
+  if(!v){showToast('請輸入金鑰', true);return;}
+  localStorage.setItem('dkwt_key',v);
+  document.getElementById('apiSaved').classList.add('show');
+  setTimeout(()=>document.getElementById('apiSaved').classList.remove('show'),3000);
+}
+function toggleApiVis(){
+  const i=document.getElementById('apiKey');
+  i.type=i.type==='password'?'text':'password';
+  event.target.textContent=i.type==='password'?'顯示':'隱藏';
+}
+
+/* ════ MODAL FUNCTIONS ════ */
+function openGuideModal() {
+  document.getElementById('guideModal').classList.add('open');
+}
+function closeGuideModal() {
+  document.getElementById('guideModal').classList.remove('open');
+}
+
+/* ════ INIT ════ */
+function init(){
+  const stored=localStorage.getItem('dkwt_key');
+  if(stored)document.getElementById('apiKey').value=stored;
+
+  ['browseSubjGrid','analyzeSubjGrid'].forEach(id=>{
+    const g=document.getElementById(id);
+    if (g) {
+      g.innerHTML = '';
+      SUBJECTS.forEach((s,i)=>{
+        const b=document.createElement('button');
+        b.className='sj'+(i===0&&id==='browseSubjGrid'?' on':'');
+        b.textContent=s;
+        b.onclick=()=>{
+          g.querySelectorAll('.sj').forEach(x=>x.classList.remove('on'));
+          b.classList.add('on');
+          if(id==='browseSubjGrid'){browseSel=s;renderBrowse();}
+          else{analyzeSel=s;document.getElementById('txtInput').value=getSubjSample(s);}
+        };
+        g.appendChild(b);
+      });
+    }
+  });
+
+  const lps=document.getElementById('lpSubj');
+  if (lps) {
+    lps.innerHTML = '';
+    SUBJECTS.forEach(s=>{const o=document.createElement('option');o.textContent=s;lps.appendChild(o);});
+  }
+
+  document.querySelectorAll('#dimFilterGrid .sj').forEach(b=>{
+    b.onclick=()=>{dimFilter=b.dataset.dim;document.querySelectorAll('#dimFilterGrid .sj').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderBrowse();};
+  });
+
+  document.querySelectorAll('#courseTypeGrid .sj').forEach(b=>{
+    b.onclick=()=>{courseType=b.dataset.ct;document.querySelectorAll('#courseTypeGrid .sj').forEach(x=>x.classList.remove('on'));b.classList.add('on');};
+  });
+
+  const txtIn = document.getElementById('txtInput');
+  if (txtIn) txtIn.value=getSubjSample(SUBJECTS[0]);
+  setBrowseSubject(SUBJECTS[0]);
+}
+
+function getSubjSample(s){
+  if(!DB[s])return'';
+  return DB[s].groups.flatMap(g=>g.inds.slice(0,2).map(i=>i.code+' '+i.text)).join('\n');
+}
+
+/* ════ PAGE NAV ════ */
+function switchPage(p){
+  document.querySelectorAll('.pn-btn').forEach((b,i)=>b.classList.toggle('on',['browse','analyze','lesson'][i]===p));
+  document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('on'));
+  const targetPg = document.getElementById('pg-'+p);
+  if (targetPg) targetPg.classList.add('on');
+}
+
+/* ════ BROWSE ════ */
+function setBrowseSubject(s){
+  browseSel=s;renderBrowse();
+}
+function renderBrowse(){
+  if(!browseSel)return;
+  const data=DB[browseSel];if(!data)return;
+  const bTitle = document.getElementById('browseTitle');
+  if (bTitle) bTitle.textContent=browseSel+' 課綱學習指標';
+  let html='';
+  data.groups.forEach(g=>{
+    if(dimFilter!=='all'&&!g.sel.includes(dimFilter))return;
+    const dimLabels=g.sel.map(k=>DIMS.find(d=>d.key===k)?.label||k).join('、');
+    html+=`<div class="ind-group" style="margin-bottom:14px">
+      <div class="ind-group-title"><span class="ind-group-dot" style="background:${data.color}"></span>${g.name} <span style="font-size:10px;color:var(--t3);font-weight:400">SEL：${dimLabels}</span></div>`;
+    g.inds.forEach(ind=>{
+      const isSel=selectedInds.some(x=>x.code===ind.code);
+      html+=`<div class="ind-item-row${isSel?' sel':''}" onclick="toggleIndSel('${ind.code}','${ind.text.replace(/'/g,"\\'")}','${browseSel}','${g.sel.join(',')}')">
+        <span class="ind-code">${ind.code}</span>${ind.text}
+      </div>`;
+    });
+    html+='</div>';
+  });
+  if(!html)html='<div style="font-size:13px;color:var(--t3);padding:1rem 0;text-align:center">此篩選條件無對應指標</div>';
+  const browser = document.getElementById('indBrowser');
+  if (browser) browser.innerHTML=html;
+  updateSelCount();
+}
+function toggleIndSel(code,text,subject,selStr){
+  const idx=selectedInds.findIndex(x=>x.code===code);
+  if(idx>=0)selectedInds.splice(idx,1);
+  else selectedInds.push({code,text,subject,sel:selStr.split(',')});
+  renderBrowse();renderLpSelInds();
+}
+// ✅ 更新右上方計數器與動作按鈕
+function updateSelCount(){
+  const lbl=document.getElementById('selCountLabel');
+  const btnLp=document.getElementById('addToLpBtn');
+  const btnAn = document.getElementById('analyzeSelBtn');
+  if(selectedInds.length>0){
+    if (lbl) { lbl.textContent=`已選 ${selectedInds.length} 條`; lbl.style.display=''; }
+    if (btnLp) btnLp.style.display='';
+    if (btnAn) btnAn.style.display='';
+  }else{
+    if (lbl) lbl.style.display='none';
+    if (btnLp) btnLp.style.display='none';
+    if (btnAn) btnAn.style.display='none';
+  }
+}
+function addSelToLesson(){switchPage('lesson');renderLpSelInds();}
+function renderLpSelInds(){
+  const el=document.getElementById('lpSelInds');
+  if(!el) return;
+  if(!selectedInds.length){el.innerHTML='<div style="font-size:12px;color:var(--t3);text-align:center;padding:8px">尚無選取指標，請至「課綱瀏覽」選取，或在下方補充</div>';return;}
+  el.innerHTML=selectedInds.map((ind,i)=>`<div class="lp-sel-ind">
+    <button class="lp-sel-ind-x" onclick="removeSelInd(${i})">×</button>
+    <div><span style="font-size:10px;font-weight:700;color:var(--t3)">${ind.code}</span><br>${ind.text}</div>
+  </div>`).join('');
+}
+function removeSelInd(i){selectedInds.splice(i,1);renderLpSelInds();renderBrowse();}
+
+/* ════ ANALYZE PAGE ════ */
+function switchATab(t){
+  currentTab=t;
+  ['text','photo','file'].forEach(x=>{
+    const tabEl = document.getElementById('atTab'+x.charAt(0).toUpperCase()+x.slice(1));
+    const paneEl = document.getElementById('atPane'+x.charAt(0).toUpperCase()+x.slice(1));
+    if (tabEl) tabEl.classList.toggle('on', t===x);
+    if (paneEl) paneEl.classList.toggle('on', t===x);
+  });
+}
+function setPhotoMode(m){
+  photoMode=m;
+  const modeInd = document.getElementById('modeInd');
+  const modeBook = document.getElementById('modeBook');
+  const modePlan = document.getElementById('modePlan');
+  if (modeInd) modeInd.className='umode-btn'+(m==='indicator'?' sel-a':'');
+  if (modeBook) modeBook.className='umode-btn'+(m==='textbook'?' sel-b':'');
+  if (modePlan) modePlan.className='umode-btn'+(m==='plan'?' sel-c':'');
+  const icons={indicator:'📋',textbook:'📖',plan:'📄'};
+  const labels={indicator:'拍照辨識課綱指標',textbook:'拍照辨識教材課本',plan:'拍照辨識計畫文件'};
+  const dropIcon = document.getElementById('dropIcon');
+  const dropLbl = document.getElementById('dropLbl');
+  if (dropIcon) dropIcon.textContent=icons[m];
+  if (dropLbl) dropLbl.textContent=labels[m];
+  clearImgs();
+}
+
+/* ════ IMAGE UPLOAD ════ */
+function handleDrop(e){e.preventDefault();document.getElementById('dropZone').classList.remove('drag-over');handleFiles(e.dataTransfer.files);}
+function handleFiles(files){
+  if(!files||!files.length)return;
+  // 由於可能存在多張或單張輸入，故迭代處理並新增至陣列
+  Array.from(files).forEach(f=>{
+    if(!f.type.startsWith('image/'))return;
+    const r=new FileReader();
+    r.onload=ev=>{uploadedImgs.push({base64:ev.target.result.split(',')[1],mime:f.type,dataUrl:ev.target.result});renderPrev();if(!ocrRunning)runOCR();};
+    r.readAsDataURL(f);
+  });
+}
+function renderPrev(){
+  const a=document.getElementById('prevArea');
+  if(!a) return;
+  if(!uploadedImgs.length){a.innerHTML='';return;}
+  // 顯示第一張預覽圖並提供操作按鈕
+  a.innerHTML=`<div class="prev-wrap"><img src="${uploadedImgs[0].dataUrl}" alt="預覽"><div class="prev-over"><button class="prev-btn" onclick="clearImgs()">✕ 移除</button><button class="prev-btn" onclick="document.getElementById('fileInput').click()">＋ 新增</button></div></div>`;
+}
+function clearImgs(){uploadedImgs=[];extractedTxt='';const prev = document.getElementById('prevArea'); if (prev) prev.innerHTML='';const oSt = document.getElementById('ocrSt'); if (oSt) oSt.className='ocr-st';const oExt = document.getElementById('ocrExt'); if (oExt) oExt.style.display='none';const fIn = document.getElementById('fileInput'); if (fIn) fIn.value='';const cIn = document.getElementById('cameraInput'); if (cIn) cIn.value='';}
+
+/* ════ DOC FILE UPLOAD (Google Gemini 支援 PDF) ════ */
+function handleDocDrop(e){e.preventDefault();document.getElementById('docDropZone').classList.remove('drag-over');handleDocFiles(e.dataTransfer.files);}
+function handleDocFiles(files){
+  if(!files||!files.length)return;
+  Array.from(files).forEach(f=>{
+    docFiles.push({name:f.name,size:f.size,type:f.type,file:f});
+  });
+  renderDocFileList();
+  if(!docOcrRunning)runDocOCR();
+}
+function renderDocFileList(){
+  const el=document.getElementById('docFileList');
+  if(!el) return;
+  if(!docFiles.length){el.innerHTML='';return;}
+  el.innerHTML=docFiles.map((f,i)=>`<div class="file-item">
+    <span class="file-item-ico">${getFileIcon(f.name)}</span>
+    <span class="file-item-name">${f.name}</span>
+    <span class="file-item-size">${formatSize(f.size)}</span>
+    <button class="file-item-del" onclick="removeDocFile(${i})">✕</button>
+  </div>`).join('');
+}
+function getFileIcon(name){
+  const ext=name.split('.').pop().toLowerCase();
+  const icons={pdf:'📄',doc:'📝',docx:'📝',ppt:'📊',pptx:'📊',txt:'📃',png:'🖼',jpg:'🖼',jpeg:'🖼'};
+  return icons[ext]||'📎';
+}
+function formatSize(bytes){
+  if(bytes<1024)return bytes+'B';
+  if(bytes<1024*1024)return Math.round(bytes/1024)+'KB';
+  return (bytes/1024/1024).toFixed(1)+'MB';
+}
+function removeDocFile(i){docFiles.splice(i,1);renderDocFileList();if(!docFiles.length){docText='';const docSt = document.getElementById('docOcrSt'); if (docSt) docSt.className='ocr-st';const docExt = document.getElementById('docOcrExt'); if (docExt) docExt.style.display='none';}}
+
+async function runDocOCR(){
+  const apiKey=getKey();
+  if(!apiKey||!docFiles.length)return;
+  docOcrRunning=true;
+  const st=document.getElementById('docOcrSt');
+  if (st) {
+    st.className='ocr-st load';
+    const docMsg = document.getElementById('docOcrMsg');
+    if (docMsg) docMsg.textContent=`AI 分析 ${docFiles.length} 份文件中...`;
+  }
+
+  const imgOrPdfFiles=docFiles.filter(f=>f.type.startsWith('image/') || f.type==='application/pdf');
+  const txtFiles=docFiles.filter(f=>['text/plain'].includes(f.type)||f.name.endsWith('.txt'));
+
+  let combinedText='';
+
+  // 圖片檔與 PDF 檔 → Gemini 2.5 Flash
+  for(const df of imgOrPdfFiles){
+    try{
+      const base64=await fileToBase64(df.file);
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          contents: [{ 
+            parts: [
+              { inlineData: { mimeType: df.type, data: base64 } },
+              { text: '請辨識並提取這份文件中的所有文字內容，保持段落結構，只輸出原文。' }
+            ] 
+          }] 
+        })
+      });
+      const data=await res.json();
+      combinedText+='\n'+(data.candidates?.[0]?.content?.parts?.[0]?.text || '');
+    }catch(e){console.error(e);}
+  }
+
+  // 純文字檔 → 直接讀取
+  for(const df of txtFiles){
+    try{
+      const text=await df.file.text();
+      combinedText+='\n'+text;
+    }catch(e){}
+  }
+
+  const otherFiles=docFiles.filter(f=>!f.type.startsWith('image/')&&f.type!=='application/pdf'&&!['text/plain'].includes(f.type));
+  if(otherFiles.length&&combinedText.trim().length<100){
+    combinedText+='\n【提示：Word 文件請先另存為 PDF，或截圖後上傳，或直接貼上文字至文字輸入欄】';
+  }
+
+  docText=combinedText.trim();
+  if (st) {
+    const docMsg = document.getElementById('docOcrMsg');
+    if(docText){
+      st.className='ocr-st done';
+      if (docMsg) docMsg.textContent=`✓ 文件 analysis 完成（${docText.length} 字）`;
+      const ext=document.getElementById('docOcrExt');
+      if (ext) {
+        ext.style.display='block';
+        ext.textContent=docText.slice(0,400)+(docText.length>400?'\n…（更多已載入）':'');
+      }
+    }else{
+      st.className='ocr-st err';
+      if (docMsg) docMsg.textContent='無法讀取文件內容，請嘗試將文件轉換為 PDF 或截圖上傳';
+    }
+  }
+  docOcrRunning=false;
+}
+
+function fileToBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result.split(',')[1]);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ════ OCR (Google Gemini Version) ════ */
+async function runOCR(){
+  const apiKey=getKey();
+  if(!apiKey||!uploadedImgs.length)return;
+  ocrRunning=true;
+  const st=document.getElementById('ocrSt');
+  if (st) {
+    st.className='ocr-st load';
+    const msgs={indicator:'AI 辨識課綱指標中...',textbook:'AI 辨識教材內容中...',plan:'AI 辨識計畫文件中...'};
+    const ocrMsg = document.getElementById('ocrMsg');
+    if (ocrMsg) ocrMsg.textContent=msgs[photoMode]||'辨識中...';
+  }
+  
+  const prompts={
+    indicator:'請仔細辨識圖片中所有課綱素養指標文字。完整提取所有指標代碼 and 說明，每條指標獨立一行，只輸出辨識到的文字。',
+    textbook:'請仔細辨識並提取這份教材頁面中的所有文字內容，保持段落結構，只輸出原文。',
+    plan:'請仔細辨識並提取這份課程計畫文件中的所有內容，包含課程名稱、目標、架構、指標等，保持原始格式，只輸出文字。'
+  };
+
+  try{
+    const parts = uploadedImgs.map(img => ({
+      inlineData: { mimeType: img.mime, data: img.base64 }
+    }));
+    parts.push({ text: prompts[photoMode] });
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: parts }] })
+    });
+    
+    if(!res.ok){
+      const err = await res.json();
+      throw new Error(err.error?.message || res.status);
+    }
+    
+    const data = await res.json();
+    extractedTxt = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    
+    if (st) {
+      st.className='ocr-st done';
+      const ocrMsg = document.getElementById('ocrMsg');
+      if (ocrMsg) ocrMsg.textContent=`✓ 辨識完成（${extractedTxt.length} 字）`;
+      const ext=document.getElementById('ocrExt');
+      if (ext) {
+        ext.style.display='block';
+        ext.textContent=extractedTxt.slice(0,400)+(extractedTxt.length>400?'\n…（已載入）':'');
+      }
+    }
+  }catch(e){
+    if (st) {
+      st.className='ocr-st err';
+      const ocrMsg = document.getElementById('ocrMsg');
+      if (ocrMsg) ocrMsg.textContent='辨識失敗：'+e.message;
+    }
+    extractedTxt='';
+  }
+  ocrRunning=false;
+}
+
+/* ════ COLOUR & ANALYSIS ════ */
+function s2c(p){
+  const s=[{p:0,r:212,g:48,b:48},{p:25,r:224,g:104,b:24},{p:45,r:212,g:160,b:0},{p:65,r:128,g:170,b:24},{p:85,r:40,g:144,b:42},{p:100,r:10,g:114,b:48}];
+  let lo=s[0],hi=s[s.length-1];
+  for(let i=0;i<s.length-1;i++)if(p>=s[i].p&&p<=s[i+1].p){lo=s[i];hi=s[i+1];break;}
+  const t=(p-lo.p)/Math.max(hi.p-lo.p,1);
+  return`rgb(${Math.round(lo.r+(hi.r-lo.r)*t)},${Math.round(lo.g+(hi.g-lo.g)*t)},${Math.round(lo.b+(hi.b-lo.b)*t)})`;
+}
+function getLabel(p){if(p>=80)return'🌡 溫度極高，非常適合';if(p>=65)return'🟩 高度適合融入';if(p>=50)return'🟨 部分適合';if(p>=35)return'🟧 需要補充';return'🔴 建議重新規劃';}
+function scoreTxt(txt){
+  const sc={},fd=[];
+  DIMS.forEach(d=>{let s=0;KW[d.key].forEach(kw=>{const m=txt.match(new RegExp(kw,'g'));if(m){s+=m.length*(kw.length>=3?2:1);if(!fd.includes(kw))fd.push(kw);}});sc[d.key]=Math.min(s,30);});
+  const mx=Math.max(...Object.values(sc),1);const nm={};
+  DIMS.forEach(d=>{nm[d.key]=Math.min(Math.round((sc[d.key]/mx)*80)+(sc[d.key]>0?12:8),97);});
+  return{scores:nm,keywords:fd.slice(0,16)};
+}
+
+/* ════ INSIGHT (Google Gemini Version) ════ */
+async function getInsight(txt,apiKey){
+  if(!apiKey)return null;
+  try{
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        contents: [{ 
+          parts: [{ text: `你是SEL教育專家。根據以下課程內容，用繁體中文給出3-4句具體的時間、教學活動、SEL融入教學建議，說明如何結合五大面向。直接給建議，不需前言。\n\n${txt.slice(0,800)}` }] 
+        }],
+        generationConfig: { maxOutputTokens: 400 }
+      })
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
+  }catch{return null;}
+}
+
+/* ════ ANALYZE ════ */
+async function analyze(){
+  let txt='',src='';
+  const apiKey=getKey();
+  if(currentTab==='text'){
+    const txtIn = document.getElementById('txtInput');
+    txt=txtIn ? txtIn.value.trim() : '';src='文字輸入';
+    if(!txt){showToast('請輸入課綱指標或課程內容', true);return;}
+  }else if(currentTab==='photo'){
+    if(!uploadedImgs.length){showToast('請先上傳或拍攝圖片', true);return;}
+    if(!extractedTxt&&!apiKey){showToast('請輸入 API 金鑰才能使用拍照辨識', true);return;}
+    if(!extractedTxt){await runOCR();if(!extractedTxt){showToast('辨識失敗，請確認 API 金鑰', true);return;}}
+    txt=extractedTxt;src=`拍照辨識（${photoMode==='indicator'?'課綱指標':photoMode==='textbook'?'教材':'計畫文件'}）`;
+  }else{
+    if(!docFiles.length&&!docText){showToast('請先上傳文件', true);return;}
+    if(!docText&&!apiKey){showToast('請輸入 API 金鑰才能辨識文件', true);return;}
+    if(!docText){await runDocOCR();if(!docText){showToast('文件分析失敗', true);return;}}
+    txt=docText;src=`檔案上傳（${courseType}・${docFiles.length}份）`;
+  }
+
+  const goBtn = document.getElementById('goBtn');
+  if (goBtn) goBtn.disabled=true;
+  const loading = document.getElementById('loading');
+  if (loading) loading.style.display='block';
+  const results = document.getElementById('results');
+  if (results) results.classList.remove('on');
+  const ldMsg = document.getElementById('ldMsg');
+  if (ldMsg) ldMsg.textContent='大觀課程溫度計分析中...';
+  const ldSub = document.getElementById('ldSub');
+  if (ldSub) ldSub.textContent=src;
+
+  let tbI=null;
+  if(apiKey&&txt.length>50){
+    if (ldMsg) ldMsg.textContent='AI 深度分析融入建議...';
+    tbI=await getInsight(txt,apiKey);
+  }
+
+  setTimeout(()=>{
+    const{scores,keywords}=scoreTxt(txt);
+    const avg=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/5);
+    const col=s2c(avg);
+    if (loading) loading.style.display='none';
+    if (results) results.classList.add('on');
+    const scNum = document.getElementById('scNum');
+    if (scNum) {
+      scNum.textContent=avg;
+      scNum.style.color=col;
+    }
+    const scSubj = document.getElementById('scSubj');
+    if (scSubj) scSubj.textContent=analyzeSel+' 科 × SEL 契合評估';
+    const scSrc = document.getElementById('scSrc');
+    if (scSrc) scSrc.textContent='來源：'+src;
+    const pill=document.getElementById('feasPill');
+    if (pill) {
+      pill.textContent=getLabel(avg);
+      pill.style.cssText=`background:${col}22;color:${col};border:1.5px solid ${col}55;font-size:13px;font-weight:700;padding:7px 16px;border-radius:20px`;
+    }
+    const mkr = document.getElementById('palMkr');
+    if (mkr) mkr.style.left=avg+'%';
+    const dimGrid = document.getElementById('dimGrid');
+    if (dimGrid) dimGrid.innerHTML=DIMS.map(d=>{const p=scores[d.key],dc=s2c(p);return`<div class="dim-blk" style="background:${dc}18;border-color:${dc}30"><div class="dim-blk-ico">${d.icon}</div><div class="dim-blk-lbl" style="color:${dc}">${d.label}</div><div class="dim-blk-pct" style="color:${dc}">${p}%</div><div class="dim-blk-bar"><div class="dim-blk-fill" style="width:${p}%;background:${dc}"></div></div></div>`;}).join('');
+    const kwList = document.getElementById('kwList');
+    if (kwList) kwList.innerHTML=keywords.length?keywords.map(k=>`<span class="kw">${k}</span>`).join(''):`<span style="font-size:12px;color:var(--t2)">未偵測到明確 SEL 關鍵詞</span>`;
+    const tbi=document.getElementById('tbInsight');
+    if(tbI){if (tbi) { tbi.style.display='block'; tbi.innerHTML=`<strong>🤖 AI SEL 融入建議</strong><br>${tbI.replace(/\n/g,'<br>')}`; }} else { if (tbi) tbi.style.display='none'; }
+    if(radarChart){radarChart.destroy();radarChart=null;}
+    const dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+    const gc=dark?'rgba(255,255,255,.1)':'rgba(0,0,0,.08)',lc=dark?'rgba(255,255,255,.55)':'rgba(0,0,0,.5)';
+    const canvasEl = document.getElementById('radarChart');
+    if (canvasEl) {
+      radarChart=new Chart(canvasEl,{
+        type:'radar',
+        data:{
+          labels:DIMS.map(d=>d.label),
+          datasets:[{
+            label:analyzeSel+' × SEL',
+            data:DIMS.map(d=>scores[d.key]),
+            backgroundColor:col+'20',
+            borderColor:col,
+            borderWidth:2.5,
+            pointBackgroundColor:DIMS.map(d=>s2c(scores[d.key])),
+            pointBorderColor:dark?'#1e160a':'#fff',
+            pointBorderWidth:2,
+            pointRadius:6,
+            pointHoverRadius:8
+          }]
+        },
+        options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{stepSize:25,font:{size:10},color:lc,backdropColor:'transparent'},pointLabels:{font:{size:Math.min(12,window.innerWidth/50)},color:lc},grid:{color:gc},angleLines:{color:gc}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.r}%`}}}}
+      });
+    }
+    const radarLeg = document.getElementById('radarLeg');
+    if (radarLeg) radarLeg.innerHTML=DIMS.map(d=>{const dc=s2c(scores[d.key]);return`<div class="leg-item"><div class="leg-dot" style="background:${dc}"></div>${d.label} <strong style="color:${dc}">${scores[d.key]}%</strong></div>`;}).join('');
+    const indResList = document.getElementById('indResList');
+    if (indResList) indResList.innerHTML=txt.split('\n').filter(l=>l.trim().length>5).slice(0,10).map(line=>{
+      let best=DIMS[0],bs=0;DIMS.forEach(d=>{let s=0;KW[d.key].forEach(kw=>{if(line.includes(kw))s++;});if(s>bs){bs=s;best=d;}});
+      const match=bs>=2?'高度契合':bs===1?'部分契合':'潛在契合';
+      return`<div class="ind-res-item"><span class="ir-dot" style="background:${best.color}"></span><div class="ir-meta"><div class="ir-dim" style="color:${best.color}">${best.label}</div><div class="ir-match" style="color:${best.color}">${match}</div></div><div class="ir-txt">${line.trim().slice(0,70)}${line.trim().length>70?'…':''}</div></div>`;
+    }).join('');
+    if (goBtn) goBtn.disabled=false;
+    const resEl = document.getElementById('results');
+    if (resEl) resEl.scrollIntoView({behavior:'smooth',block:'start'});
+  },600);
+}
+
+// ✅ 新增：快速分析已選取的指標
+function analyzeSelectedInds(){
+  if(!selectedInds.length) return;
+  // 將已選的指標文字組成字串
+  const textToAnalyze = selectedInds.map(i => `【${i.code}】${i.text}`).join('\n');
+  
+  // 自動切換到分析頁籤與文字輸入模式
+  switchPage('analyze');
+  switchATab('text');
+  
+  // 填入文字並自動觸發分析
+  const txtIn = document.getElementById('txtInput');
+  if (txtIn) txtIn.value = textToAnalyze;
+  analyze();
+}
+
+/* ════ LESSON PLAN (Google Gemini Version) ✅ 加入安全放寬與排版引擎 ════ */
+async function generateLesson(){
+  const apiKey=getKey();
+  if(!apiKey){showToast('⚠️ 請先輸入 API 金鑰（頁面最上方）', true);return;}
+  
+  // 修正點: 新增 DOM 存在檢查防呆機制，避免 null 崩潰
+  const subjEl = document.getElementById('lpSubj');
+  const gradeEl = document.getElementById('lpGrade');
+  const lpDimEl = document.getElementById('lpDim');
+  const periodEl = document.getElementById('lpPeriod');
+  const courseTypeEl = document.getElementById('lpCourseType');
+  const formatEl = document.getElementById('lpFormat');
+  const topicEl = document.getElementById('lpTopic');
+  const extraEl = document.getElementById('lpExtra');
+
+  const subj = subjEl ? subjEl.value : SUBJECTS[0];
+  const grade = gradeEl ? gradeEl.value : '國七（7年級）';
+  const dim = lpDimEl ? lpDimEl.value : 'all';
+  const period = periodEl ? periodEl.value : '1 節（45分鐘）';
+  const courseTypeVal = courseTypeEl ? courseTypeEl.value : '部定課程（必修）';
+  const format = formatEl ? formatEl.value : 'full';
+  const topic = topicEl ? topicEl.value.trim() : '';
+  const extra = extraEl ? extraEl.value.trim() : '';
+
+  const inds=selectedInds.length?selectedInds.map(i=>`【${i.code}】${i.text}`).join('\n'):'（請從課綱瀏覽選取，或在補充說明中指定）';
+  const dimLabel=dim==='all'?'SEL五大面向（自我覺察、自我管理、社會覺察、人際技巧、負責任的決策）':DIMS.find(d=>d.key===dim)?.label||dim;
+
+  const formatDesc={
+    full:'完整教學活動設計（含基本資料、學習目標、核心素養呼應、SEL面向說明、教學流程含時間分配、教學策略、評量方式、差異化建議、教師反思提問，並請包含：壹、基本資料、貳、學習目標、參、SEL面向說明、肆、教學流程、伍、評量方式、陸、差異化建議、柒、教師反思提問、捌、所需材料）',
+    simple:'簡案（重點摘要，包含：主題、目標、SEL連結、活動概述、評量方式）',
+    unit:'單元計畫（含單元名稱、整體目標、各節教學重點、評量規準、SEL融入說明）'
+  }[format];
+
+  // ✅ 融入策略微調：依據教師所選的策略調整 Prompt 範本
+  const selStrategyEl = document.getElementById('lpSelStrategy');
+  const selStrategy = selStrategyEl ? selStrategyEl.value : 'balanced';
+  const strategyDesc = {
+    balanced: "請全面且均衡地將 CASEL 五大面向有機融合至活動中，避免偏重單一面向。",
+    awareness: "本教案須特別強化【自我覺察】。請在暖身與反思階段，設計具體的活動引導學生命名與抒發自身情緒，探索自我優勢，並練習「自我接納」與情感表達。",
+    management: "本教案須特別強化【自我管理】。請在核心活動中引導學生面對不確定性與壓力，學習具體的「壓力調適工具」，並設計挑戰任務以鍛鍊學生的「挫折忍受力」與時間管理策略。",
+    social: "本教案須特別強化【社會覺察】。請融入「同理心」、「跨文化尊重」與「多元包容」要素，設計小組合作情境讓學生探討不同立場與環境脈絡下的差異，並引導學生展現關懷與感恩。",
+    relation: "本教案須特別強化【人際互動技巧】。請大幅著重在「小組溝通」、「積極傾聽」與「衝突管理」。設計明確的協作規則、分工檢核表，並教導學生如何用建設性的方式提供同儕回饋。",
+    decision: "本教案須特別強化【負責任的決策】。請在活動中設計一個「道德兩難」或「行動評估」的探究情境，引導學生透過批判性思考、客觀評估各種選擇的利弊後果，並為公共利益做出負責任的集體決定。"
+  }[selStrategy];
+
+  const prompt=`你是一位資深國中${subj}科教師，同時是 SEL 社會情緒學習專家，深諳108課綱精神。
+請根據以下資訊，生成一份${formatDesc}：
+
+【科目】${subj}
+【年級】${grade}
+【課程類型】${courseTypeVal}
+【課堂節數】${period}
+【SEL 融入面向】${dimLabel}
+【主題】${topic||'請根據指標自行建議最適合的教學主題'}
+【對應課綱指標】
+${inds}
+${extra?`\n【補充說明】\n${extra}`:''}
+
+【SEL 融入教案著重導向要求】：
+${strategyDesc}
+
+重要要求：
+- 請以繁體中文撰寫，並完全使用台灣教育與資訊界習慣用語（如：資訊、程序、脈絡、專案，不得使用大陸用語）。
+- 活動設計要極度具體可操作，包含明確的課堂引導語與問答，老師可以直接使用。
+- SEL 元素要自然融入領域學習內容中，不要生硬植入。
+- 符合108課綱「自發、互動、共好」精神，並包含明確的形成性評量標準。
+
+請直接輸出教案內容，格式清晰。`;
+
+  const genBtn = document.getElementById('genBtn');
+  if (genBtn) genBtn.disabled=true;
+  const lpOutput = document.getElementById('lpOutput');
+  if (lpOutput) lpOutput.classList.remove('on');
+  const lpLoading = document.getElementById('lpLoading');
+  if (lpLoading) lpLoading.style.display='block';
+  const lpLdMsg = document.getElementById('lpLdMsg');
+  if (lpLdMsg) lpLdMsg.textContent=`AI 生成 ${subj} ${format==='simple'?'簡案':format==='unit'?'單元計畫':'教學活動設計'}...`;
+  const lpLdSub = document.getElementById('lpLdSub');
+  if (lpLdSub) lpLdSub.textContent=`${grade} · ${period} · ${dimLabel}`;
+
+  try {
+    // 修正點: 呼叫 API 網址統一更換為正式穩定版公用模型 gemini-2.5-flash 
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        contents: [{ parts: [{ text: prompt }] }],
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+        ],
+        // ✅ 修正點：將最大輸出 Token 大幅提升至 8192，解決 MAX_TOKENS 導致生成中斷的問題
+        generationConfig: { maxOutputTokens: 8192 }
+      })
+    });
+    
+    if(!res.ok){
+      const err = await res.json();
+      throw new Error(err.error?.message || res.status);
+    }
+    
+    const data = await res.json();
+    const candidate = data.candidates?.[0];
+    
+    if(candidate && candidate.finishReason !== 'STOP') {
+        // ✅ 優化：區分因為 MAX_TOKENS 還是政策審查導致的中斷
+        if (candidate.finishReason === 'MAX_TOKENS') {
+            throw new Error(`生成字數達到上限 (MAX_TOKENS)。AI 的教案過於豐富而被截斷，系統已為您解鎖最大字數限制，請再試一次！`);
+        } else {
+            throw new Error(`生成被中斷 (原因: ${candidate.finishReason})，可能是內容觸發了政策審查或安全機制。`);
+        }
+    }
+
+    lastLpContent = candidate?.content?.parts?.[0]?.text?.trim() || '';
+    
+    if (!lastLpContent) {
+        throw new Error('API 回傳了空白內容，請嘗試重新生成。');
+    }
+    
+    if (lpLoading) lpLoading.style.display='none';
+    
+    const lpContent = document.getElementById('lpContent');
+    if (lpContent) {
+      if(typeof marked !== 'undefined'){
+        lpContent.innerHTML = marked.parse(lastLpContent);
+      } else {
+        lpContent.textContent = lastLpContent;
+      }
+    }
+    
+    const lpMeta = document.getElementById('lpMeta');
+    if (lpMeta) lpMeta.textContent=`${subj} · ${grade} · ${courseTypeVal} · ${new Date().toLocaleDateString('zh-TW')}`;
+    if (lpOutput) {
+      lpOutput.classList.add('on');
+      lpOutput.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  }catch(e){
+    if (lpLoading) lpLoading.style.display='none';
+    showToast('生成失敗：\n'+e.message, true);
+  }
+  if (genBtn) genBtn.disabled=false;
+}
+
+/* ✅ 修正點 5: 行動載具拍照設定鏡頭源切換 */
+function updateCameraCapture() {
+  const facingEl = document.getElementById('cameraFacing');
+  const facing = facingEl ? facingEl.value : 'environment';
+  const camInput = document.getElementById('cameraInput');
+  
+  if (camInput) {
+    const parent = camInput.parentNode;
+    parent.removeChild(camInput);
+  }
+  
+  const newInput = document.createElement('input');
+  newInput.type = 'file';
+  newInput.id = 'cameraInput';
+  newInput.accept = 'image/*';
+  newInput.style.display = 'none';
+  newInput.onchange = function() { handleFiles(this.files); };
+  
+  if (facing === 'user') {
+    newInput.setAttribute('capture', 'user');
+    showToast('已將鏡頭切換為：前置自拍鏡頭');
+  } else {
+    newInput.setAttribute('capture', 'environment');
+    showToast('已將鏡頭切換為：後置主相機 (拍教材)');
+  }
+  
+  const dropZone = document.getElementById('dropZone');
+  if (dropZone) dropZone.appendChild(newInput);
+}
+
+/* ✅ 修正點 6: 前端一鍵完美打包教案文字與上傳/拍攝的所有照片成 PDF 下載 */
+async function exportToPDF() {
+  if (!lastLpContent) {
+    showToast('尚無生成的教案可供打包下載！', true);
+    return;
+  }
+  showToast('正在為您打包教案與照片，請稍候...');
+
+  const element = document.createElement('div');
+  element.style.padding = '35px';
+  element.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  element.style.color = '#2c1a08';
+  element.style.backgroundColor = '#fffdf8';
+
+  const subjEl = document.getElementById('lpSubj');
+  const subj = subjEl ? subjEl.value : '領域';
+  const metaEl = document.getElementById('lpMeta');
+  const meta = metaEl ? metaEl.textContent : '';
+  const title = `大觀有愛♥AI 課程溫度計 - ${subj}領域教學活動設計`;
+
+  element.innerHTML = `
+    <div style="border: 2px solid #c06010; border-radius: 12px; padding: 20px; margin-bottom: 25px; background: #fff8ee;">
+      <h1 style="color: #c06010; font-size: 24px; margin-bottom: 8px; font-weight: 800; text-align: center;">${title}</h1>
+      <p style="font-size: 13px; color: #7a5430; text-align: center; font-style: italic; margin-bottom: 12px;">${meta}</p>
+      <div style="width: 80px; height: 3px; background: #e8820a; margin: 0 auto 10px;"></div>
+      <p style="font-size: 11px; text-align: center; color: #7a5430;">大觀有愛♥AI 課程溫度計 · SEL × 108課綱 · 驅動 by Google Gemini API</p>
+    </div>
+    <div style="font-size: 13px; line-height: 1.85;">
+      ${marked.parse(lastLpContent)}
+    </div>
+  `;
+
+  if (uploadedImgs && uploadedImgs.length > 0) {
+    element.innerHTML += `
+      <div style="page-break-before: always; margin-top: 30px;">
+        <h2 style="color: #c06010; font-size: 18px; border-bottom: 2px solid #c06010; padding-bottom: 5px; margin-bottom: 15px; font-weight: 800;">📋 附錄：教學觀察紀錄與隨堂照片</h2>
+        <p style="font-size: 12px; color: #7a5430; margin-bottom: 20px;">以下照片為本堂課堂觀察、學生互動或教材頁面之實境紀錄：</p>
+      </div>
+    `;
+
+    uploadedImgs.forEach((img, idx) => {
+      element.innerHTML += `
+        <div style="margin-bottom: 30px; text-align: center; page-break-inside: avoid;">
+          <img src="${img.dataUrl}" style="max-width: 95%; max-height: 380px; border-radius: 12px; border: 1.5px dashed rgba(192,96,16,0.3); padding: 5px; background: #fff;" />
+          <p style="font-size: 11px; color: #7a5430; margin-top: 8px; font-weight: bold;">【紀錄照片 #${idx + 1}】</p>
+        </div>
+      `;
+    });
+  }
+
+  element.innerHTML += `
+    <div style="text-align: center; border-top: 1px solid rgba(180,120,50,0.2); padding-top: 15px; margin-top: 45px; font-size: 11px; color: #7a5430;">
+      大觀課程溫度計 · SEL × 108課綱 · CASEL 五大面向 · 驅動 by Google Gemini API<br>
+      Copyright &copy; 2026 大觀課程溫度計研究開發社群 - 陳柏宇 & 大觀國中團隊 版權所有
+    </div>
+  `;
+
+  const opt = {
+    margin:       12,
+    filename:     `大觀課程溫度計_教案_${subj}_${new Date().toLocaleDateString('zh-TW')}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2.5, useCORS: true, logging: false },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    showToast('✅ PDF 打包下載成功！');
+  }).catch((err) => {
+    showToast('PDF 打包失敗：' + err.message, true);
+  });
+}
+
+function copyLesson(){navigator.clipboard.writeText(lastLpContent).then(()=>showToast('✅ 已複製到剪貼簿！')).catch(()=>showToast('請手動選取複製', true));}
+function downloadLesson(){
+  const sSubj = document.getElementById('lpSubj');
+  const s = sSubj ? sSubj.value : '領域';
+  const blob=new Blob([lastLpContent],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`大觀課程溫度計_教案_${s}_${new Date().toLocaleDateString('zh-TW')}.txt`;a.click();
+}
+function regenLesson(){generateLesson();}
+
+/* ════ MISC ════ */
+function toggleAcc(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+function showToast(msg, isError=false) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (isError ? ' error' : '');
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+init();
+</script>
+</body>
+</html>
